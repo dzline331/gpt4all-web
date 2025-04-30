@@ -5,12 +5,13 @@ import requests
 
 app = Flask(__name__)
 
-# === Télécharger automatiquement le modèle ===
-model_url = "https://huggingface.co/nomic-ai/gpt4all/resolve/main/ggml-gpt4all-j-v1.3-groovy.bin"
+# === Configuration du modèle ===
+model_url = "https://huggingface.co/orel12/ggml-gpt4all-j-v1.3-groovy/resolve/main/ggml-gpt4all-j-v1.3-groovy.q4_0.bin"
 model_dir = "models"
-model_filename = "ggml-gpt4all-j-v1.3-groovy.bin"
+model_filename = "ggml-gpt4all-j-v1.3-groovy.q4_0.bin"
 model_path = os.path.join(model_dir, model_filename)
 
+# === Téléchargement automatique du modèle si nécessaire ===
 if not os.path.exists(model_path):
     os.makedirs(model_dir, exist_ok=True)
     print("Téléchargement du modèle...")
@@ -21,8 +22,8 @@ if not os.path.exists(model_path):
                 f.write(chunk)
     print("Téléchargement terminé.")
 
-# === Charger le modèle GPT4All ===
-model = GPT4All(model_path)
+# === Chargement du modèle GPT4All ===
+model = GPT4All(model_path, model_name="gpt4all-custom", allow_download=False)
 
 @app.route("/ask", methods=["POST"])
 def ask():
