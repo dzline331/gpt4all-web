@@ -1,45 +1,36 @@
 from flask import Flask, request, jsonify
-from gpt4all import GPT4All
+from transformers import pipeline
 import os
-import requests
 
 app = Flask(__name__)
 
-# === Configuration du modèle ===
-model_url = "https://huggingface.co/orel12/ggml-gpt4all-j-v1.3-groovy/resolve/main/ggml-gpt4all-j-v1.3-groovy.q4_0.bin"
-model_dir = "models"
-model_filename = "ggml-gpt4all-j-v1.3-groovy.q4_0.bin"
-model_path = os.path.join(model_dir, model_filename)
-
-# === Téléchargement automatique du modèle si nécessaire ===
-if not os.path.exists(model_path):
-    os.makedirs(model_dir, exist_ok=True)
-    print("Téléchargement du modèle...")
-    response = requests.get(model_url, stream=True)
-    with open(model_path, "wb") as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            if chunk:
-                f.write(chunk)
-    print("Téléchargement terminé.")
-
-# === Chargement du modèle GPT4All ===
-# model_name = nom du fichier ; model_path = dossier contenant le fichier
-model = GPT4All(
-    model_name=model_filename,
-    model_path=model_dir,
-    allow_download=False
-)  # model_filename in model_dir must exist localement 0
+# === Initialisation du pipeline DistilGPT2 ===
+# Le téléchargement ne se fait qu'une seule fois, puis le modèle est caché dans ~/.cache/huggingface
+generator = pipeline(
+    "text-generation",
+    model="distilbert/distilgpt2",
+    device=-1,               # CPU seulement
+    max_length=100,          # limite la longueur de sortie
+    clean_up_tokenization_spaces=True,
+)
 
 @app.route("/ask", methods=["POST"])
 def ask():
-    data = request.get_json()
-    question = data.get("question", "")
-    response = model.generate(question)
-    return jsonify({"response": response})
+    data = request.get_json(force=True)
+    question = data.get("question", "").strip()
+    if not question:
+        return jsonify({"error": "Aucune question fournie"}), 400
+
+    # Génération de texte
+    output = generator(question, do_sample=False, num_return_sequences=1)
+    # L'API renvoie une liste de dicts {"generated_text": "..."}
+    text = output[0].get("generated_text", "")
+    return jsonify({"response": text})
 
 @app.route("/", methods=["GET"])
 def index():
-    return "GPT4All API fonctionne !"
+    return "DistilGPT2 API prête 🎉"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    # Utilise python3 dans le Procfile: web: python3 app.py
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
