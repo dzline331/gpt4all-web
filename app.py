@@ -8,10 +8,10 @@ app = Flask(__name__)
 # Le téléchargement ne se fait qu'une seule fois, puis le modèle est caché dans ~/.cache/huggingface
 generator = pipeline(
     "text-generation",
-    model="distilbert/distilgpt2",
-    device=-1,               # CPU seulement
-    max_length=10,          # limite la longueur de sortie
-    clean_up_tokenization_spaces=True,
+    model="sshleifer/tiny-gpt2",
+    device=-1,
+    max_length=10,
+    truncation=True,
 )
 
 @app.route("/ask", methods=["POST"])
