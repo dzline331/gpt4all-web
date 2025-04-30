@@ -10,7 +10,7 @@ generator = pipeline(
     "text-generation",
     model="distilbert/distilgpt2",
     device=-1,               # CPU seulement
-    max_length=100,          # limite la longueur de sortie
+    max_length=10,          # limite la longueur de sortie
     clean_up_tokenization_spaces=True,
 )
 
@@ -34,3 +34,4 @@ def index():
 if __name__ == "__main__":
     # Utilise python3 dans le Procfile: web: python3 app.py
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    
