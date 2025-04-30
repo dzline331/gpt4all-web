@@ -23,7 +23,12 @@ if not os.path.exists(model_path):
     print("Téléchargement terminé.")
 
 # === Chargement du modèle GPT4All ===
-model = GPT4All(model_path, model_name="gpt4all-custom", allow_download=False)
+# Attention à l’ordre des arguments pour ne pas avoir de doublon
+model = GPT4All(
+    model_name="gpt4all-custom",
+    model_path=model_path,
+    allow_download=False
+)
 
 @app.route("/ask", methods=["POST"])
 def ask():
